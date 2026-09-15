@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="sv" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DompicGlosor</title>
+  <style>
+    html[data-theme="bright"] {
+      --bg: #b7dcff;
+      --bg2: #dff0ff;
+      --ink: #3aa0e8;
+      --muted: #4ea6d8;
+      --card: #ffffff;
+      --line: rgba(255,255,255,.8);
+      --btn: #ffffff;
+      --btn-text: #4db3ff;
+      --shadow: 0 16px 40px rgba(70,150,210,.18);
+    }
+    html[data-theme="dark"] {
+      --bg: #5a2d86;
+      --bg2: #3b1760;
+      --ink: #c9a6ff;
+      --muted: #b48fff;
+      --card: #110817;
+      --line: rgba(0,0,0,.4);
+      --btn: #000000;
+      --btn-text: #c084fc;
+      --shadow: 0 18px 44px rgba(0,0,0,.35);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      min-height: 100vh;
+      font-family: "Segoe UI", system-ui, sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 12% -10%, var(--bg2), transparent 42%),
+        radial-gradient(circle at 100% 110%, var(--bg2), transparent 36%),
+        var(--bg);
+      transition: background .55s cubic-bezier(.22,1,.36,1), color .45s ease;
+    }
+    button, input, .card, .big-btn, .theme-toggle {
+      transition: background .45s cubic-bezier(.22,1,.36,1), color .45s ease, transform .35s cubic-bezier(.22,1,.36,1), box-shadow .45s ease, opacity .35s ease;
+    }
+    .theme-toggle {
+      position: fixed;
+      top: 14px;
+      left: 14px;
+      z-index: 50;
+      border: 0;
+      background: var(--btn);
+      color: var(--btn-text);
+      font-weight: 800;
+      font-size: .82rem;
+      cursor: pointer;
+      padding: 10px 14px;
+      border-radius: 999px;
+      box-shadow: var(--shadow);
+    }
+    .theme-toggle:hover { transform: translateY(-2px); }
+    .wrap { width: min(780px, 92vw); margin: 0 auto; padding: 78px 0 56px; }
+    .brand { display: flex; align-items: center; gap: 14px; margin-bottom: 18px; }
+    .logo {
+      width: 64px; height: 64px; border-radius: 18px; flex: 0 0 64px;
+      background: #07041a;
+      box-shadow: 0 0 24px rgba(110,80,255,.35);
+    }
+    .wordmark { font-size: clamp(1.7rem,5vw,2.4rem); font-weight: 900; letter-spacing: -.03em; line-height: 1; }
+    .wordmark span { opacity: .72; font-weight: 700; }
+    h1 { font-size: clamp(1.7rem,5vw,2.5rem); line-height: 1.1; font-weight: 800; }
+    .lead { color: var(--muted); margin-top: 8px; font-size: 1.02rem; }
+    .screen { display: none; }
+    .screen.show { display: block; animation: fadeUp .55s cubic-bezier(.22,1,.36,1); }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(14px); }
+      to { opacity: 1; transform: none; }
+    }
+    .home-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 26px; }
+    .big-btn, .card, button.act, button.ghost, button.pick {
+      background: var(--btn); color: var(--btn-text); border: 1px solid var(--line); box-shadow: var(--shadow);
+    }
+    .big-btn { border-radius: 24px; padding: 28px 20px; text-align: left; cursor: pointer; min-height: 180px; }
+    .big-btn:hover, button.act:hover, button.ghost:hover, button.pick:hover { transform: translateY(-3px); }
+    .big-btn h2 { font-size: 1.7rem; margin-bottom: 8px; color: var(--btn-text); }
+    .big-btn p { color: var(--btn-text); opacity: .78; }
+    .card { background: var(--card); border-radius: 22px; padding: 22px; }
+    .back { border: 0; background: transparent; color: var(--ink); font-weight: 800; cursor: pointer; margin-bottom: 12px; }
+    label { display: block; font-size: .75rem; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
+    input {
+      width: 100%; margin-bottom: 14px; padding: 12px 14px; border-radius: 14px;
+      border: 1px solid var(--line); background: var(--btn); color: var(--btn-text); font-size: 1.05rem; font-family: inherit;
+    }
+    .row-btns, .stack { display: flex; gap: 10px; }
+    .stack { flex-direction: column; }
+    button.act, button.ghost, button.pick {
+      border-radius: 14px; padding: 12px 14px; cursor: pointer; font-weight: 800; font-size: 1rem;
+    }
+    button.act, button.ghost { flex: 1; }
+    button.pick { width: 100%; text-align: left; padding: 16px; margin-bottom: 10px; }
+    .pack-title { font-size: 1.15rem; display: block; color: var(--btn-text); }
+    .pack-meta { opacity: .75; font-size: .92rem; margin-top: 4px; display: block; color: var(--btn-text); }
+    .count, .tiny { margin-top: 12px; color: var(--muted); font-size: .92rem; }
+    .ask { font-size: clamp(1.8rem,6vw,2.6rem); text-align: center; margin: 8px 0 16px; word-break: break-word; animation: fadeUp .45s cubic-bezier(.22,1,.36,1); }
+    button.act:disabled, button.ghost:disabled { opacity: .4; cursor: default; transform: none; }
+    .feedback { min-height: 1.4em; text-align: center; font-weight: 800; margin: 4px 0 10px; }
+    .feedback.ok { color: #2bd48a; }
+    .feedback.bad { color: #ff7b7b; }
+    @media (max-width: 640px) {
+      .home-grid { grid-template-columns: 1fr; }
+      .logo { width: 54px; height: 54px; flex-basis: 54px; }
+    }
+  </style>
+</head>
+<body>
+  <button class="theme-toggle" id="themeToggle" type="button">Bright mode</button>
+  <audio id="correctSound" src="correct.mp3" preload="auto"></audio>
+  <audio id="wrongSound" src="wrong.mp3" preload="auto"></audio>
+  <div class="wrap">
+    <div class="brand">
+      <img class="logo" src="DompicGlosor-logga.png" alt="DompicGlosor-logga" />
+      <div class="wordmark">Dompic<span>Glosor</span></div>
+    </div>
+    <h1 id="pageTitle">Välj läge</h1>
+    <p class="lead" id="pageLead">Custom för egna glosor. Premade för färdiga paket.</p>
+
+    <section class="screen show" id="homeScreen">
+      <div class="home-grid">
+        <button class="big-btn" id="goCustom" type="button">
+          <h2>Custom</h2>
+          <p>Skriv in egna glosor. Ett par i taget, sen övar du.</p>
+        </button>
+        <button class="big-btn" id="goPremade" type="button">
+          <h2>Premade</h2>
+          <p>Välj ett färdigt glospaket och börja direkt.</p>
+        </button>
+      </div>
+    </section>
+
+    <section class="screen" id="premadeScreen">
+      <button class="back" id="backFromPremade" type="button">← Startsida</button>
+      <div class="card" id="packList"></div>
+    </section>
+
+    <section class="screen" id="enterScreen">
+      <button class="back" id="backFromEnter" type="button">← Startsida</button>
+      <div class="card">
+        <label for="langInput">språk</label>
+        <input id="langInput" autocomplete="off" />
+        <label for="svInput">svenska</label>
+        <input id="svInput" autocomplete="off" />
+        <div class="row-btns">
+          <button class="ghost" id="klarBtn" type="button">Klar</button>
+          <button class="act" id="nastaBtn" type="button">Nästa</button>
+        </div>
+        <p class="count" id="wordCount">0 glosor inskrivna</p>
+      </div>
+    </section>
+
+    <section class="screen" id="choiceScreen">
+      <button class="back" id="backFromChoice" type="button">← Tillbaka</button>
+      <div class="card">
+        <p class="tiny" id="choiceSub">Välj riktning</p>
+        <div class="stack" style="margin-top:14px">
+          <button class="act" id="svToLang" type="button">Svenska → språket</button>
+          <button class="ghost" id="langToSv" type="button">Språket → svenska</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="screen" id="quizScreen">
+      <button class="back" id="backFromQuiz" type="button">← Avsluta</button>
+      <div class="card">
+        <p class="tiny" id="quizHint">Översätt</p>
+        <p class="ask" id="askWord">—</p>
+        <label for="answerInput">Din översättning</label>
+        <input id="answerInput" autocomplete="off" />
+        <p class="feedback" id="feedback"></p>
+        <button class="act" id="checkBtn" type="button">Kolla</button>
+        <p class="count" id="quizScore">Poäng: 0 / 0</p>
+      </div>
+    </section>
+
+    <section class="screen" id="doneScreen">
+      <div class="card">
+        <h2 style="margin-bottom:8px">Klar!</h2>
+        <p class="lead" id="doneText">Bra jobbat.</p>
+        <div class="stack" style="margin-top:18px">
+          <button class="act" id="againBtn" type="button">Köra om</button>
+          <button class="ghost" id="fixBtn" type="button">Fixa misstag</button>
+          <button class="ghost" id="homeBtn" type="button">Startsida</button>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+    const PACKS = [{
+      id: "sophie-schultag",
+      title: "Sophies Schultag",
+      meta: "TY7 Genau Neu 7 · Kapitel 2 · 24 glosor",
+      words: [
+        ["die Freundin", "väninnan"],
+        ["der Unterricht", "undervisningen"],
+        ["hart", "hård / hårt / tufft / tuff"],
+        ["die Stunde", "timmen / lektionen"],
+        ["die Stunden", "timmar / lektioner"],
+        ["die AG", "individuellt val"],
+        ["die Theater-AG", "teater som individuellt val"],
+        ["der Sketch", "sketchen"],
+        ["die Sketche", "sketcher"],
+        ["die Mittagspause", "lunchrasten"],
+        ["Spaß machen", "vara kul / vara roligt"],
+        ["die Cafeteria", "cafeterian"],
+        ["bis", "tills"],
+        ["die Klavierstunde", "pianolektionen"],
+        ["die Hausaufgabe", "läxan"],
+        ["die Hausaufgaben", "läxor"],
+        ["lernen", "lära sig / plugga"],
+        ["am schönsten", "bäst / skönast"],
+        ["verliebt", "förälskad / kär"],
+        ["Stimmt nicht!", "Det stämmer inte!"],
+        ["übrigens", "förresten / för övrigt"],
+        ["planen", "planera"],
+        ["die Klassenfahrt", "klassresan"],
+        ["im nächsten Frühling", "nästa vår"]
+      ]
+    }];
+    let words = [], returnTo = "home", quizDir = "sv-lang", queue = [], current = null, correctCount = 0, totalAsked = 0, revealed = false, mistakes = [];
+    const screens = ["homeScreen","premadeScreen","enterScreen","choiceScreen","quizScreen","doneScreen"];
+    function applyTheme(theme) {
+      document.documentElement.setAttribute("data-theme", theme);
+      localStorage.setItem("dompic-theme", theme);
+      document.getElementById("themeToggle").textContent = theme === "dark" ? "Bright mode" : "Dark mode";
+    }
+    applyTheme(localStorage.getItem("dompic-theme") === "bright" ? "bright" : "dark");
+    document.getElementById("themeToggle").addEventListener("click", function () {
+      applyTheme(document.documentElement.getAttribute("data-theme") === "dark" ? "bright" : "dark");
+    });
+    function showScreen(id, title, lead) {
+      screens.forEach(function (name) { document.getElementById(name).classList.toggle("show", name === id); });
+      if (title) document.getElementById("pageTitle").textContent = title;
+      if (lead) document.getElementById("pageLead").textContent = lead;
+    }
+    function beep(freqs, vol) {
+      try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        let t = ctx.currentTime;
+        freqs.forEach(function (f, i) {
+          const o = ctx.createOscillator();
+          const g = ctx.createGain();
+          o.type = "sine";
+          o.frequency.value = f;
+          g.gain.setValueAtTime(0.0001, t);
+          g.gain.exponentialRampToValueAtTime(vol, t + 0.02);
+          g.gain.exponentialRampToValueAtTime(0.0001, t + 0.16);
+          o.connect(g); g.connect(ctx.destination);
+          o.start(t); o.stop(t + 0.18);
+          t += 0.11;
+        });
+      } catch (e) {}
+      const el = document.getElementById(freqs[0] > 400 ? "correctSound" : "wrongSound");
+      if (el && el.src && !el.src.endsWith("/")) el.play().catch(function(){});
+    }
+    function playSound(id) {
+      if (id === "correctSound") beep([659, 880], 0.08);
+      else beep([311, 196], 0.07);
+    }
+    document.getElementById("goCustom").addEventListener("click", function () {
+      words = []; returnTo = "enter";
+      document.getElementById("langInput").value = "";
+      document.getElementById("svInput").value = "";
+      updateCount();
+      showScreen("enterScreen", "Custom", "Skriv in glosor. Nästa för fler, Klar när du är färdig.");
+      document.getElementById("langInput").focus();
+    });
+    document.getElementById("goPremade").addEventListener("click", function () {
+      const box = document.getElementById("packList"); box.innerHTML = "";
+      PACKS.forEach(function (pack) {
+        const btn = document.createElement("button");
+        btn.type = "button"; btn.className = "pick";
+        btn.innerHTML = "<span class='pack-title'></span><span class='pack-meta'></span>";
+        btn.querySelector(".pack-title").textContent = pack.title;
+        btn.querySelector(".pack-meta").textContent = pack.meta;
+        btn.addEventListener("click", function () {
+          words = pack.words.map(function (pair) { return { lang: pair[0], sv: pair[1] }; });
+          returnTo = "premade";
+          document.getElementById("choiceSub").textContent = pack.title + " · " + words.length + " glosor";
+          showScreen("choiceScreen", pack.title, "Välj om du ska översätta från svenska eller till svenska.");
+        });
+        box.appendChild(btn);
+      });
+      showScreen("premadeScreen", "Premade", "Välj vilka glosor du vill träna på.");
+    });
+    function goHome() { showScreen("homeScreen", "Välj läge", "Custom för egna glosor. Premade för färdiga paket."); }
+    document.getElementById("backFromPremade").addEventListener("click", goHome);
+    document.getElementById("backFromEnter").addEventListener("click", goHome);
+    document.getElementById("backFromChoice").addEventListener("click", function () {
+      if (returnTo === "enter") showScreen("enterScreen", "Custom", "Skriv in glosor. Nästa för fler, Klar när du är färdig.");
+      else if (returnTo === "premade") document.getElementById("goPremade").click();
+      else goHome();
+    });
+    document.getElementById("backFromQuiz").addEventListener("click", function () { showScreen("choiceScreen", "Öva", "Välj riktning."); });
+    function saveCurrentPair() {
+      const lang = document.getElementById("langInput").value.trim();
+      const sv = document.getElementById("svInput").value.trim();
+      if (!lang || !sv) return false;
+      words.push({ lang: lang, sv: sv });
+      document.getElementById("langInput").value = "";
+      document.getElementById("svInput").value = "";
+      updateCount();
+      return true;
+    }
+    function updateCount() {
+      const n = words.length;
+      document.getElementById("wordCount").textContent = n + (n === 1 ? " glosa inskriven" : " glosor inskrivna");
+    }
+    document.getElementById("nastaBtn").addEventListener("click", function () { if (saveCurrentPair()) document.getElementById("langInput").focus(); });
+    document.getElementById("langInput").addEventListener("keydown", function (e) { if (e.key === "Enter") { e.preventDefault(); document.getElementById("svInput").focus(); } });
+    document.getElementById("svInput").addEventListener("keydown", function (e) { if (e.key === "Enter") { e.preventDefault(); if (saveCurrentPair()) document.getElementById("langInput").focus(); } });
+    document.getElementById("klarBtn").addEventListener("click", function () {
+      saveCurrentPair();
+      if (!words.length) { document.getElementById("wordCount").textContent = "Skriv minst en glosa först."; return; }
+      document.getElementById("choiceSub").textContent = words.length + " egna glosor redo.";
+      showScreen("choiceScreen", "Custom", "Välj om du ska översätta från svenska eller till svenska.");
+    });
+    document.getElementById("svToLang").addEventListener("click", function () { startQuiz("sv-lang"); });
+    document.getElementById("langToSv").addEventListener("click", function () { startQuiz("lang-sv"); });
+    function shuffle(arr) {
+      const a = arr.slice();
+      for (let i = a.length - 1; i > 0; i -= 1) { const j = Math.floor(Math.random() * (i + 1)); const t = a[i]; a[i] = a[j]; a[j] = t; }
+      return a;
+    }
+    function startQuiz(dir, list) {
+      quizDir = dir;
+      queue = shuffle(list || words);
+      correctCount = 0;
+      totalAsked = 0;
+      revealed = false;
+      if (list !== mistakes) mistakes = [];
+      showScreen("quizScreen", "Öva", "Skriv översättningen och tryck Kolla.");
+      nextQuestion();
+    }
+    function nextQuestion() {
+      if (!queue.length) {
+        const n = mistakes.length;
+        document.getElementById("doneText").textContent = "Poäng: " + correctCount + " av " + totalAsked + " rätt." + (n ? " " + n + " att fixa." : " Inga misstag!");
+        document.getElementById("fixBtn").disabled = n === 0;
+        showScreen("doneScreen", "Klar!", "Vad vill du göra nu?");
+        return;
+      }
+      current = queue.shift(); revealed = false;
+      const ask = document.getElementById("askWord");
+      ask.style.animation = "none";
+      void ask.offsetWidth;
+      ask.style.animation = "fadeUp .45s cubic-bezier(.22,1,.36,1)";
+      const fromSv = quizDir === "sv-lang";
+      ask.textContent = fromSv ? current.sv : current.lang;
+      document.getElementById("quizHint").textContent = fromSv ? "Översätt till språket" : "Översätt till svenska";
+      document.getElementById("answerInput").value = "";
+      document.getElementById("feedback").textContent = "";
+      document.getElementById("feedback").className = "feedback";
+      document.getElementById("checkBtn").textContent = "Kolla";
+      document.getElementById("quizScore").textContent = "Poäng: " + correctCount + " / " + totalAsked + " · " + queue.length + " kvar";
+      document.getElementById("answerInput").focus();
+    }
+    function normalize(text) {
+      return String(text)
+        .toLowerCase()
+        .replace(/[.,!?]/g, " ")
+        .replace(/\b(der|die|das|ein|eine|ett|en)\b/g, " ")
+        .replace(/\s+/g, " ")
+        .trim();
+    }
+    function alternatives(text) {
+      return String(text).split(/\s*(?:\/|;|,|\||\beller\b)\s*/i).map(normalize).filter(Boolean);
+    }
+    function isCorrect(answer, expected) {
+      const got = normalize(answer);
+      if (!got) return false;
+      const opts = alternatives(expected);
+      if (opts.indexOf(got) !== -1) return true;
+      if (normalize(expected) === got) return true;
+      return opts.some(function (opt) {
+        return opt === got || opt.replace(/t$/, "") === got.replace(/t$/, "");
+      });
+    }
+    function checkAnswer() {
+      if (!current) return;
+      if (revealed) { nextQuestion(); return; }
+      const expected = quizDir === "sv-lang" ? current.lang : current.sv;
+      totalAsked += 1;
+      const ok = isCorrect(document.getElementById("answerInput").value, expected);
+      const box = document.getElementById("feedback");
+      if (ok) { correctCount += 1; box.textContent = "Rätt!"; box.className = "feedback ok"; playSound("correctSound"); }
+      else {
+        box.textContent = "Rätt svar: " + expected;
+        box.className = "feedback bad";
+        playSound("wrongSound");
+        if (!mistakes.some(function (w) { return w.lang === current.lang && w.sv === current.sv; })) mistakes.push(current);
+      }
+      revealed = true;
+      document.getElementById("checkBtn").textContent = queue.length ? "Nästa" : "Klar";
+      document.getElementById("quizScore").textContent = "Poäng: " + correctCount + " / " + totalAsked + " · " + queue.length + " kvar";
+    }
+    document.getElementById("checkBtn").addEventListener("click", checkAnswer);
+    document.getElementById("answerInput").addEventListener("keydown", function (e) { if (e.key === "Enter") { e.preventDefault(); checkAnswer(); } });
+    document.getElementById("againBtn").addEventListener("click", function () { startQuiz(quizDir, words); });
+    document.getElementById("fixBtn").addEventListener("click", function () {
+      if (!mistakes.length) return;
+      startQuiz(quizDir, mistakes.slice());
+    });
+    document.getElementById("homeBtn").addEventListener("click", goHome);
+  </script>
+</body>
+</html>
